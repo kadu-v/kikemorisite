@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkkikemori=self.webpackChunkkikemori||[]).push([[3388],{6746:e=>{e.exports=JSON.parse('{"label":"facebook","permalink":"/kikemorisite/blog/tags/facebook","allTagsPath":"/kikemorisite/blog/tags","count":1}')}}]);
