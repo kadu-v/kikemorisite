@@ -30,7 +30,19 @@
 
 - [AllocateTensors](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L188)：ここで，テンソルをallocateしている．
 - [TfLiteStatus MicroInterpreter::AllocateTensors() {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L188-L189)：ここで，グラフを構築している．
+    - [SubgraphAllocations* allocations = allocator_.StartModelAllocation(model_);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L189-L190)：modelのtensorをallocateしている．
+        - [uint8_t* data_allocator_buffer =](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L451-L455)：allocateのしているのはここ．
+        - [uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.cc#L108-L124)：ここがテンソルの実質的なallocateの場所．
+        - [if (AllocateTfLiteEvalTensors(model, output) != kTfLiteOk ||](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L472-L474)：ここで，グラフの各ノードのテンソルと順伝搬時に使うテンソルの領域を確保している？
+            - [TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L581-L605)：グラフのテンソルとかを確保している模様．
+                - [NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L593-L597)：各オペレータのサイズ（各層)の数だけノードを確保している． 
+            - [TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L722-L723)：ここで，順伝搬用のテンソルの領域を確保している．
+                - [TfLiteStatus status = internal::InitializeTfLiteEvalTensorFromFlatbuffer(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L744-L745)：これがflatbufferから重みを読み込んで，初期化している．
+                    - [result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L323-L324):この関数の返り値がvoidになっており，float32 or intにキャストされる？
+                - [TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L313-L314):これがテンソルを取得している実態．
+                - [GetFlatbufferTensorBuffer](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L163)：これが渡されたflatbuffer_tensorとbuffersの整合性をチェックしている．
     - [SetSubgraphAllocations](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L197)：ここで，subgraphをセットしている．
+        - この部分がグラフ構造の初期化をしている．
     - [TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L199-L200)：ここがflatbufferの中身をみて，各nodeを準備している？
     - [TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L95):flatbufferの中身を見ているところ．
     - [for (size_t i = 0; i < operators_size; ++i) {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L105-L106)：ここで，グラフを構築している．
@@ -45,6 +57,8 @@
     - [TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L206-L207)：ここでsubgraphを準備している．
         - [TfLiteStatus MicroGraph::PrepareSubgraphs() {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L88-L89)：これが実装．
         - [TfLiteStatus prepare_status = registration->prepare(context_, node);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L102-L103)：ここで，各nodeのPrepareを呼び出している．
+
+
 ## [TF_LITE_ENSURE_STATUS(interpreter.Invoke());](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/examples/hello_world/hello_world_test.cc#L94-L95)
 - [TfLiteStatus MicroInterpreter::Invoke() {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L268-L281): ここで，順伝搬を実行している．
 - [TfLiteStatus invoke_status = registration->invoke(context_, node);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L194):ここで，`RegisteOp`で登録したEval関数を呼び出している．
