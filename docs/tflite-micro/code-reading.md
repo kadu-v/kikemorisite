@@ -1,4 +1,4 @@
-# Code Reading of Tensorflow Lite for Microcontroller
+<!-- # Code Reading of Tensorflow Lite for Microcontroller
 本稿ではTensorflow Lite for Microcontrollerのランタイムを理解を目標とする．
 方針としては，[Hello world example](https://www.tensorflow.org/lite/microcontrollers/get_started_low_level?hl=ja)を順にたどっていくことで理解する．
 
@@ -9,7 +9,7 @@
 ## [operatorの登録](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/examples/hello_world/hello_world_test.cc#L74-L76)
 - [MicroMutableOpResolver](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_mutable_op_resolver.h#L43-L44)クラスの変数を作成して，順次オペレーターを使いしていく．
 - [RegisteOps](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/examples/hello_world/hello_world_test.cc#L33-L34)関数の中で全結合層を追加していて，[AddFullyConnected](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_mutable_op_resolver.h#L264-L269)の実装は`micro_mutabel_op_resolver.h`に書かれている．
-- [Register_FULLY_CONNECTED()](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/kernels/fully_connected.cc#L202-L205)で全結合層のオペレータを登録している．  
+- [Register_FULLY_CONNECTED()](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/kernels/fully_connected.cc#L202-L205)で全結合層のオペレータを登録している．
 [RegisteOp](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/kernels/kernel_util.cc#L41)でtensorflow kernelの`TFLMRegistration`を返している．
     - [Init](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/kernels/fully_connected.cc#L29-L34): バッファをallocateする関数．なぜ全結合層専用？．
     - [Prepare](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/kernels/fully_connected.cc#L35-L67)で入出力のテンソルを確保している．
@@ -35,7 +35,7 @@
         - [uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.cc#L108-L124)：ここがテンソルの実質的なallocateの場所．
         - [if (AllocateTfLiteEvalTensors(model, output) != kTfLiteOk ||](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L472-L474)：ここで，グラフの各ノードのテンソルと順伝搬時に使うテンソルの領域を確保している？
             - [TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L581-L605)：グラフのテンソルとかを確保している模様．
-                - [NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L593-L597)：各オペレータのサイズ（各層)の数だけノードを確保している． 
+                - [NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L593-L597)：各オペレータのサイズ（各層)の数だけノードを確保している．
             - [TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L722-L723)：ここで，順伝搬用のテンソルの領域を確保している．
                 - [TfLiteStatus status = internal::InitializeTfLiteEvalTensorFromFlatbuffer(](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L744-L745)：これがflatbufferから重みを読み込んで，初期化している．
                     - [result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_allocator.cc#L323-L324):この関数の返り値がvoidになっており，float32 or intにキャストされる？
@@ -48,7 +48,7 @@
     - [for (size_t i = 0; i < operators_size; ++i) {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L105-L106)：ここで，グラフを構築している．
 
     - [graph_(&context_, model, &allocator_, resource_variables),](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L47-L48)ここでグラフ構造の初期値を設定している．
-        - 
+        -
     - [TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L202-L203):ここで，サブグラフを構築している．
         - [TfLiteStatus MicroGraph::InitSubgraphs() {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L55-L56):
             - [registration->init(context_, init_data, init_data_size);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L79-L80)：ここで，`Init`を読んでいる．
@@ -63,4 +63,4 @@
 - [TfLiteStatus MicroInterpreter::Invoke() {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_interpreter.cc#L268-L281): ここで，順伝搬を実行している．
 - [TfLiteStatus invoke_status = registration->invoke(context_, node);](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L194):ここで，`RegisteOp`で登録したEval関数を呼び出している．
 - [for (size_t i = 0; i < operators_size; ++i) {](https://github.com/kadu-v/tflite-micro-sample/blob/0f674d38fc8becd90fbd943fb7e7c49f808a7019/tensorflow/lite/micro/micro_graph.cc#L177-L178):このfor文で各層をたどって順伝搬を実行している．
-- TFLiteNode：DNNのグラフ構造を表現するためのクラス．
+- TFLiteNode：DNNのグラフ構造を表現するためのクラス． -->
